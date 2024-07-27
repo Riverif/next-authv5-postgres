@@ -4,6 +4,8 @@ import * as z from "zod";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { LoginSchema } from "@/schemas";
 import {
@@ -20,12 +22,20 @@ import { FormError } from "../form-error";
 import { cn } from "@/lib/utils";
 import { FormSuccess } from "../form-success";
 import { login } from "@/actions/login";
-import { useState, useTransition } from "react";
 
-export const LoginForm = ({ className }: { className?: String }) => {
+export const LoginForm = ({
+  className,
+  updateAuthInfo,
+}: {
+  className?: String;
+  updateAuthInfo: (
+    errorMessage: string | undefined,
+    successMessage: string | undefined,
+  ) => void;
+}) => {
+  const router = useRouter();
+
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -36,14 +46,13 @@ export const LoginForm = ({ className }: { className?: String }) => {
   });
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setError("");
-    setSuccess("");
+    updateAuthInfo("", "");
 
     startTransition(() => {
       login(values).then((data) => {
-        setError(data.error);
-        setSuccess(data.success);
+        updateAuthInfo(data.error, data.success);
       });
+      router.refresh();
     });
   };
 
@@ -95,8 +104,6 @@ export const LoginForm = ({ className }: { className?: String }) => {
           </form>
         </Form>
       </div>
-      <FormError message={error} />
-      <FormSuccess message={success} />
     </>
   );
 };

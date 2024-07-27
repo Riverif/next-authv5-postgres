@@ -22,14 +22,22 @@ import { FormSuccess } from "../form-success";
 import { useState, useTransition } from "react";
 import { signUp } from "@/actions/signup";
 
-export const SignUpForm = ({ className }: { className?: String }) => {
+export const SignUpForm = ({
+  className,
+  updateAuthInfo,
+}: {
+  className?: String;
+  updateAuthInfo: (
+    errorMessage: string | undefined,
+    successMessage: string | undefined,
+  ) => void;
+}) => {
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
 
   const form = useForm<z.infer<typeof SignUpSchema>>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
+      name: "",
       username: "",
       email: "",
       password: "",
@@ -37,13 +45,11 @@ export const SignUpForm = ({ className }: { className?: String }) => {
   });
 
   const onSubmit = (values: z.infer<typeof SignUpSchema>) => {
-    setError("");
-    setSuccess("");
+    updateAuthInfo("", "");
 
     startTransition(() => {
       signUp(values).then((data) => {
-        setError(data.error);
-        setSuccess(data.success);
+        updateAuthInfo(data.error, data.success);
       });
     });
   };
@@ -65,6 +71,23 @@ export const SignUpForm = ({ className }: { className?: String }) => {
                         {...field}
                         disabled={isPending}
                         placeholder="johndoe"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                        placeholder="John Doe"
                       />
                     </FormControl>
                     <FormMessage />
@@ -108,13 +131,11 @@ export const SignUpForm = ({ className }: { className?: String }) => {
               />
             </div>
             <Button type="submit" className="w-full">
-              Login
+              Sign Up
             </Button>
           </form>
         </Form>
       </div>
-      <FormError message={error} />
-      <FormSuccess message={success} />
     </>
   );
 };

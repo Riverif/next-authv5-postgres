@@ -14,7 +14,7 @@ export const signUp = async (values: z.infer<typeof SignUpSchema>) => {
     return { error: "Invalide fields!" };
   }
 
-  const { email, password, username } = validateFields.data;
+  const { email, password, username, name } = validateFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const existingUser = await getUserByEmail(email);
@@ -27,6 +27,7 @@ export const signUp = async (values: z.infer<typeof SignUpSchema>) => {
     data: {
       username,
       email,
+      name,
       password: hashedPassword,
     },
   });
